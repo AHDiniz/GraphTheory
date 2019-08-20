@@ -10,8 +10,8 @@
 #define INPUT_STREAM stdin
 #endif
 
-long Solve(int n, int m, int costLib, int costRoad, int **roads, bool *discovered);
-long DFS(int n, int m, int city, int costLib, int costRoad, int **roads, bool *discovered);
+long Solve(long n, long m, long costLib, long costRoad, long **roads, bool *discovered);
+long DFS(long n, long m, long city, long **roads, bool *discovered);
 
 int main(int argc, char *argv[])
 {
@@ -20,19 +20,19 @@ int main(int argc, char *argv[])
 	FILE *in = fopen(argv[1], "r");
 	#endif
 
-	int queries;
-	int n, m;
-	int costLib, costRoad;
+	long queries;
+	long n, m;
+	long costLib, costRoad;
 
-	int **roads;
+	long **roads;
 	bool *discovered;
 
-	fscanf(INPUT_STREAM, "%d\n", &queries);
+	fscanf(INPUT_STREAM, "%ld\n", &queries);
 	for (int i = 0; i < queries; i++)
 	{
-		fscanf(INPUT_STREAM, "%d %d %d %d", &n, &m, &costLib, &costRoad);
-		if (costLib < costRoad)
-			fprintf(out, "%d\n", costLib * n);
+		fscanf(INPUT_STREAM, "%ld %ld %ld %ld", &n, &m, &costLib, &costRoad);
+		if (m == 0 || costLib < costRoad)
+			fprintf(out, "%ld\n", costLib * n);
 		else
 		{
 			discovered = malloc(sizeof(*discovered) * n);
@@ -43,9 +43,8 @@ int main(int argc, char *argv[])
 			for (int j = 0; j < m; j++)
 			{
 				roads[j] = malloc(sizeof(*roads[j]) * 2);
-				fscanf(INPUT_STREAM, "%d %d", &(roads[j][0]), &(roads[j][1]));
+				fscanf(INPUT_STREAM, "%ld %ld", &(roads[j][0]), &(roads[j][1]));
 			}
-
 			fprintf(out, "%ld\n", Solve(n, m, costLib, costRoad, roads, discovered));
 		}
 	}
@@ -53,38 +52,42 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-long Solve(int n, int m, int costLib, int costRoad, int **roads, bool *discovered)
+long Solve(long n, long m, long costLib, long costRoad, long **roads, bool *discovered)
 {
-	int result = 0;
+	long result = 0;
+	long connectedComponents = 0;
 
 	for (int i = 0; i < m; i++)
 	{
-		if (!discovered[roads[i][0]])
+		if (!discovered[roads[i][0] - 1])
 		{
-			result += DFS(n, m, roads[i][0], costLib, costRoad, roads, discovered);
+			long nodes = DFS(n, m, roads[i][0], roads, discovered);
+			result += (nodes - 1) * costRoad;
+			connectedComponents++;
 		}
 	}
 
+	result += connectedComponents * costLib;
 	return result;
 }
 
-long DFS(int n, int m, int city, int costLib, int costRoad, int **roads, bool *discovered)
+long DFS(long n, long m, long city, long **roads, bool *discovered)
 {
-	int *stack = malloc(sizeof(*stack) * n);
+	long *stack = malloc(sizeof(*stack) * n);
 	for (int i = 0; i < n; i++)
 		stack[i] = -1;
 	stack[0] = city;
 	int top = 0;
-	int result = 0;
+	long result = 0;
 	while (stack[0] != -1 && top > -1)
 	{
-		int node = stack[top];
+		long node = stack[top];
 		stack[top] = -1;
 		top--;
-		if (!discovered[node])
+		if (!discovered[node - 1])
 		{
-			result += (result == 0) ? costLib : costRoad;
-			discovered[node] = true;
+			result++;
+			discovered[node - 1] = true;
 			for (int i = 0; i < m; i++)
 			{
 				if (roads[i][0] == city)
