@@ -2,99 +2,105 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-long Solve(int n, int costLib, int costRoad, int **cities, bool *discovered);
-long DFS(int **cities, int m, int node, int cl, int cr, bool *discovered);
+#ifdef NOTHR
+#define OUTPUT_PATH "result.txt"
+#define INPUT_STREAM in
+#else
+#define OUTPUT_PATH getenv("OUTPUT_PATH")
+#define INPUT_STREAM stdin
+#endif
 
-/**
- * Fazer DFS:
- * 
- * Adicionar custo de biblioteca quando iniciar busca em "novo grafo"
- * Adicionar custo de rua toda vez que caminhar pelo grafo e nó não estiver descoberto
-*/
+long Solve(int n, int m, int costLib, int costRoad, int **roads, bool *discovered);
+long DFS(int n, int m, int city, int costLib, int costRoad, int **roads, bool *discovered);
 
-
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
-	int queries;
-	int n;
-	int m;
-	int costLib;
-	int costRoad;
-	int **cities;
-
+	FILE *out = fopen(OUTPUT_PATH, "w+");
+	#if NOTHR
 	FILE *in = fopen(argv[1], "r");
-	FILE *out = fopen("result.txt", "w+");
+	#endif
 
-	fscanf(in, "%d\n", &queries);
+	int queries;
+	int n, m;
+	int costLib, costRoad;
 
+	int **roads;
+	bool *discovered;
+
+	fscanf(INPUT_STREAM, "%d\n", &queries);
 	for (int i = 0; i < queries; i++)
 	{
-		fscanf(in, "%d %d %d %d\n", &n, &m, &costLib, &costRoad);
-		cities = malloc(sizeof(int) * m);
-		for (int j = 0; j < m; j++)
-		{
-			cities[j] = malloc(sizeof(int) * 2);
-			fscanf(in, "%d %d\n", &cities[j][0], &cities[j][1]);
-		}
-
+		fscanf(INPUT_STREAM, "%d %d %d %d", &n, &m, &costLib, &costRoad);
 		if (costLib < costRoad)
-			fprintf(out, "%d\n", n * costLib);
+			fprintf(out, "%d\n", costLib * n);
 		else
 		{
-			bool *discovered = malloc(sizeof(bool) * n);
-			for (int i = 0; i < n; i++)
-				discovered[i] = false;
-			fprintf(out, "%ld\n", Solve(m, costLib, costRoad, cities, discovered));
+			discovered = malloc(sizeof(*discovered) * n);
+			for (int j = 0; j < n; j++)
+				discovered[j] = false;
+
+			roads = malloc(sizeof(*roads) * m);
+			for (int j = 0; j < m; j++)
+			{
+				roads[j] = malloc(sizeof(*roads[j]) * 2);
+				fscanf(INPUT_STREAM, "%d %d", &(roads[j][0]), &(roads[j][1]));
+			}
+
+			fprintf(out, "%ld\n", Solve(n, m, costLib, costRoad, roads, discovered));
 		}
-
-		free(cities);
 	}
-
-	// fclose(in);
-	// fclose(out);
 
 	return 0;
 }
 
-long Solve(int n, int costLib, int costRoad, int **cities, bool *discovered)
+long Solve(int n, int m, int costLib, int costRoad, int **roads, bool *discovered)
 {
 	int result = 0;
 
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < m; i++)
 	{
-		if (!discovered[cities[i][0]])
-			result += DFS(cities, n, cities[i][0], costLib, costRoad, discovered);
+		if (!discovered[roads[i][0]])
+		{
+			result += DFS(n, m, roads[i][0], costLib, costRoad, roads, discovered);
+		}
 	}
 
 	return result;
 }
 
-long DFS(int **cities, int m, int node, int cl, int cr, bool *discovered)
+long DFS(int n, int m, int city, int costLib, int costRoad, int **roads, bool *discovered)
 {
+	int *stack = malloc(sizeof(*stack) * n);
+	for (int i = 0; i < n; i++)
+		stack[i] = -1;
+	stack[0] = city;
+	int top = 0;
 	int result = 0;
-	if (!discovered[node])
+	while (stack[0] != -1 && top > -1)
 	{
-		discovered[node] = true;
-		result = cl;
-	}
-	for (int i = 0; i < m; i++)
-	{
-		if (cities[i][0] == node)
+		int node = stack[top];
+		stack[top] = -1;
+		top--;
+		if (!discovered[node])
 		{
-			if (!discovered[cities[i][1]])
+			result += (result == 0) ? costLib : costRoad;
+			discovered[node] = true;
+			for (int i = 0; i < m; i++)
 			{
-				discovered[cities[i][1]] = true;
-				result += cr + DFS(cities, m, cities[i][1], cl, cr, discovered);
+				if (roads[i][0] == city)
+				{
+					top++;
+					stack[top] = roads[i][1];
+				}
+				else if (roads[i][1] == city)
+				{
+					top++;
+					stack[top] = roads[i][0];
+				}
+				
 			}
 		}
-		else if (cities[i][1] == node)
-		{
-			if (!discovered[cities[i][0]])
-			{
-				discovered[cities[i][0]] = true;
-				result += cr + DFS(cities, m, cities[i][0], cl, cr, discovered);
-			}
-		}
 	}
+	// free(stack);
 	return result;
 }
