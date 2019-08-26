@@ -29,19 +29,22 @@ void GraphAddEdge(Graph g, int v, int w)
 	if (g->adjacencies[v] == NULL)
 	{
 		g->adjacencies[v] = malloc(sizeof(int));
+		g->lengths[v] = 1;
 		g->adjacencies[v][0] = w;
+		g->e++;
 	}
 	else
 	{
-		int pos = sizeof(g->adjacencies[v]) / sizeof(int);
-		g->adjacencies[v] = realloc(g->adjacencies[v], sizeof(g->adjacencies[v] + sizeof(int)));
+		int pos = g->lengths[v]++;
+		g->adjacencies[v] = realloc(g->adjacencies[v], sizeof(int) * g->lengths[v]);
 		g->adjacencies[pos] = w;
+		g->e++;
 	}
 }
 
 int *GraphAdjacent(Graph g, int v)
 {
-	int length = sizeof(g->adjacencies[v]) / sizeof(int);
+	int length = g->lengths[v];
 	int *adj = malloc(sizeof(int) * (length - 1));
 	for (int i = 0; i < length; i++)
 		adj[i] = g->adjacencies[v][i];
@@ -60,5 +63,12 @@ int GraphEdges(Graph g)
 
 void DestroyGraph(Graph g)
 {
-
+	for (int i = 0; i < g->v; i++)
+	{
+		for (int j = 0; j < g->lengths[i]; j++)
+			free(g->adjacencies[i][j]);
+		free(g->adjacencies[i]);
+	}
+	free(g->lengths);
+	free(g);
 }
