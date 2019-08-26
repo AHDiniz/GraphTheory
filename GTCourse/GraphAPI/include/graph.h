@@ -8,13 +8,13 @@ Graph CreateGraph(int numV);
 
 void GraphAddEdge(Graph g, int v, int w);
 
-int *GraphAdjacent(Graph g, int v);
+int *GraphAdjacents(Graph g, int v);
 
 int GraphVertices(Graph g);
 
 int GraphEdges(Graph g);
 
-const char *GraphStr(Graph g);
+void PrintGraph(Graph g);
 
 void DestroyGraph(Graph g);
 

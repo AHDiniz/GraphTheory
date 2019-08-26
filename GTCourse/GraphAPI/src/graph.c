@@ -1,5 +1,6 @@
 #include "graph.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 struct graph
@@ -42,7 +43,7 @@ void GraphAddEdge(Graph g, int v, int w)
 	}
 }
 
-int *GraphAdjacent(Graph g, int v)
+int *GraphAdjacents(Graph g, int v)
 {
 	int length = g->lengths[v];
 	int *adj = malloc(sizeof(int) * (length - 1));
@@ -59,6 +60,19 @@ int GraphVertices(Graph g)
 int GraphEdges(Graph g)
 {
 	return g->e;
+}
+
+void PrintGraph(Graph g)
+{
+	for (int i = 0; i < g->v; i++)
+	{
+		printf("%d: ", i);
+		for (int j = 0; j < g->lengths[i]; i++)
+		{
+			printf("%d ", j);
+		}
+		printf("\n");
+	}
 }
 
 void DestroyGraph(Graph g)
