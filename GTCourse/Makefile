@@ -1,4 +1,4 @@
-INC := -Iinclude/
+INC := -IGraphAPI/include/
 
-all: $(wildcard include/*.h) $(wildcard src/*.c)
+api: $(wildcard GraphAPI/include/*.h) $(wildcard GraphAPI/src/*.c)
 	gcc -c $^ -o graph.o && ar rcs bin/libgraph.a graph.o $(INC)
