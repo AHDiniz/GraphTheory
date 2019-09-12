@@ -9,7 +9,6 @@ struct graph
 	int *lengths;
 	int **adjacencies;
 };
-
 Graph CreateGraph(int numV)
 {
 	Graph g = malloc(sizeof(*g));
